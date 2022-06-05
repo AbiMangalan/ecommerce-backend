@@ -1,6 +1,6 @@
 const productModel = require("../models/productModel")
 const { uploadFile } = require("../awsS3/aws")
-const { isRequired, isInvalid } = require("../Validations/productValidation")
+const { isRequired, isInvalid } = require("../validations/productValidation")
 const { isValidObjectId } = require("mongoose")
 
 //1.

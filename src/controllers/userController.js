@@ -2,7 +2,7 @@ const jwt = require("jsonwebtoken")
 const userModel = require("../models/userModel")
 const { uploadFile } = require("../awsS3/aws")
 const bcrypt = require("bcrypt")
-const { isRequired, isInvalid, isValid } = require("../Validations/userValidation")
+const { isRequired, isInvalid, isValid } = require("../validations/userValidation")
 
 let initialCapital = function (value) {
     return value[0].toUpperCase() + value.slice(1).toLowerCase()
