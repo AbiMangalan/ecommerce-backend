@@ -41,9 +41,11 @@ const registerUser = async function (req, res) {
         data.profileImage = uploadedFileURL
 
         let created = await userModel.create(data)
-        res.status(201).send({ status: true, message: "User created successfully", data: created })
-    } catch (error) {
-        res.status(500).send({ status: false, message: error.message })
+        return res.status(201).send({ status: true, message: "User created successfully", data: created })
+
+    } 
+    catch (error) {
+        return res.status(500).send({ status: false, message: error.message })
     }
 }
 
@@ -81,8 +83,8 @@ const userLogin = async function (req, res) {
         }
         else if (result == false)
             return res.status(400).send({ status: false, msg: "Incorrect Password" })
-
-    } catch (err) {
+    } 
+    catch (err) {
         res.status(500).send({ status: false, message: err.message })
     }
 }
@@ -99,7 +101,8 @@ const getUserDetails = async function (req, res) {
 
         return res.status(200).send({ status: true, message: "User details", data: checkId })
 
-    } catch (error) {
+    } 
+    catch (error) {
         return res.status(500).send({ status: false, message: error.message })
     }
 }
@@ -108,50 +111,55 @@ const getUserDetails = async function (req, res) {
 
 //4.
 const updateUserProfile = async function (req, res) {
-    let userId = req.params.userId
-    let data = req.body
-    let files = req.files
-    let getEmail = await userModel.findOne({ email: data.email }).collation({ locale: "en", strength: 2 })
-    let getPhone = await userModel.findOne({ phone: data.phone })
-    if (Object.keys(data).length == 0)
-        return res.status(400).send({ status: false, message: "Please provide user detail(s) to be updated." })
+    try {
+        let userId = req.params.userId
+        let data = req.body
+        let files = req.files
+        let getEmail = await userModel.findOne({ email: data.email }).collation({ locale: "en", strength: 2 })
+        let getPhone = await userModel.findOne({ phone: data.phone })
+        if (Object.keys(data).length == 0)
+            return res.status(400).send({ status: false, message: "Please provide user detail(s) to be updated." })
 
-    let err = isInvalid(data, getEmail, getPhone, files)
-    if (err)
-        return res.status(400).send({ status: false, message: err })
+        let err = isInvalid(data, getEmail, getPhone, files)
+        if (err)
+            return res.status(400).send({ status: false, message: err })
 
-    //changing data to proper format
-    if (data.fname?.trim())
-        data.fname = initialCapital(data.fname.trim())
+        //changing data to proper format
+        if (data.fname?.trim())
+            data.fname = initialCapital(data.fname.trim())
 
-    if (data.lname?.trim())
-        data.lname = initialCapital(data.lname.trim())
+        if (data.lname?.trim())
+            data.lname = initialCapital(data.lname.trim())
 
-    if (data.address) {
-        if (data.address.shipping) {
-            if (data.address.shipping.city?.trim())
-                data.address.shipping.city = initialCapital(data.address.shipping.city.trim())
+        if (data.address) {
+            if (data.address.shipping) {
+                if (data.address.shipping.city?.trim())
+                    data.address.shipping.city = initialCapital(data.address.shipping.city.trim())
+            }
+
+            if (data.address.billing) {
+                if (data.address.billing.city?.trim())
+                    data.address.billing.city = initialCapital(data.address.billing.city.trim())
+            }
+        }
+        if (data.email?.trim())
+            data.email = data.email.trim().toLowerCase()
+        if (files.length > 0) {
+            let uploadedFileURL = await uploadFile(files[0])
+            data.profileImage = uploadedFileURL
         }
 
-        if (data.address.billing) {
-            if (data.address.billing.city?.trim())
-                data.address.billing.city = initialCapital(data.address.billing.city.trim())
+        let updatedProfile = await userModel.findOneAndUpdate({ _id: userId }, [{ $addFields: data }], { new: true })
+
+        if (data.password?.trim()) {
+            data.password = await bcrypt.hash(data.password, 10)
+            updatedProfile = await userModel.findOneAndUpdate({ _id: userId }, { $set: { password: data.password } }, { new: true })
         }
+        return res.status(200).send({ status: true, message: "User profile updated", data: updatedProfile })
     }
-    if (data.email?.trim())
-        data.email = data.email.trim().toLowerCase()
-    if (files.length > 0) {
-        let uploadedFileURL = await uploadFile(files[0])
-        data.profileImage = uploadedFileURL
+    catch (error) {
+        return res.status(500).send({ status: false, message: error.message })
     }
-
-    let updatedProfile = await userModel.findOneAndUpdate({ _id: userId }, [{ $addFields: data }], { new: true })
-
-    if (data.password?.trim()) {
-        data.password = await bcrypt.hash(data.password, 10)
-        updatedProfile = await userModel.findOneAndUpdate({ _id: userId }, { $set: { password: data.password } }, { new: true })
-    }
-    return res.status(200).send({ status: true, message: "User profile updated", data: updatedProfile })
 }
 
 module.exports = { registerUser, userLogin, updateUserProfile, getUserDetails }

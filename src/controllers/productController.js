@@ -7,7 +7,6 @@ const { isValidObjectId } = require("mongoose")
 const createProduct = async function (req, res) {
     try {
         let data = req.body
-
         let files = req.files
         let getTitle = await productModel.findOne({ title: data.title })
         let error = []
@@ -26,10 +25,10 @@ const createProduct = async function (req, res) {
         data.productImage = uploadedFileURL
         data.price = parseFloat(data.price).toFixed(2)
         let created = await productModel.create(data)
-        res.status(201).send({ status: true, message: "Success", data: created })
+        return res.status(201).send({ status: true, message: "Success", data: created })
     }
     catch (err) {
-        res.status(500).send({ status: false, message: err.message })
+        return res.status(500).send({ status: false, message: err.message })
     }
 }
 
@@ -76,10 +75,10 @@ const getProducts = async (req, res) => {
                 return res.status(404).send({ status: false, message: "Invalid price range" })
         }
         let filterProduct = await productModel.find(filter).sort({ price: 1 })
-        if (filterProduct.length == 0) return res.status(404).send({ status: false, message: "Product not found" })
+        if (filterProduct.length == 0) 
+            return res.status(404).send({ status: false, message: "Product not found" })
 
-        if (filterProduct)
-            return res.status(200).send({ status: true, message: "Success", data: filterProduct })
+        return res.status(200).send({ status: true, message: "Success", data: filterProduct })
     }
     catch (error) {
         return res.status(500).send({ status: false, error: error.message })
@@ -106,7 +105,7 @@ const getProductById = async (req, res) => {
         return res.status(200).send({ status: true, count: product.length, message: 'Success', data: product })
     }
     catch (error) {
-        res.status(500).send({ Error: error.message })
+        return res.status(500).send({ Error: error.message })
     }
 }
 
@@ -144,7 +143,7 @@ const updateProduct = async function (req, res) {
         return res.status(200).send({ status: true, message: "Product details updated successfully.", data: updatedProduct })
     }
     catch (err) {
-        res.status(500).send({ status: false, message: err.message })
+        return res.status(500).send({ status: false, message: err.message })
     }
 }
 
@@ -158,15 +157,16 @@ const deleteProduct = async function (req, res) {
         }
         const deletedDetails = await productModel.findOneAndUpdate(
             { _id: productId, isDeleted: false },
-            { $set: { isDeleted: true, deletedAt: new Date() } }, { new: true })
-
+            { $set: { isDeleted: true, deletedAt: new Date() } }, 
+            { new: true }
+        )
         if (!deletedDetails) {
             return res.status(404).send({ status: false, message: 'product does not exist' })
         }
         return res.status(200).send({ status: true, message: 'Product deleted successfully.' })
     }
     catch (err) {
-        res.status(500).send({ status: false, message: err.message })
+        return res.status(500).send({ status: false, message: err.message })
     }
 }
 module.exports = { createProduct, getProducts, getProductById, updateProduct, deleteProduct }

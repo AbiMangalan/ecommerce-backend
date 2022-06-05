@@ -37,7 +37,7 @@ const createOrder = async function (req, res) {
         if (error.length > 0)
             return res.status(400).send({ status: false, message: error })
 
-        totalQuantity = cartData.items.map(x=>x.quantity).reduce((a, b) => a + b)
+        let totalQuantity = cartData.items.map(x=>x.quantity).reduce((a, b) => a + b)
         orderData = { ...cartData.toObject(), totalQuantity, ...data }
 
         let orderCreated = await orderModel.create(orderData)
@@ -47,7 +47,8 @@ const createOrder = async function (req, res) {
         )
         return res.status(201).send({ status: true, message: "Order placed successfully", data: orderCreated })
 
-    } catch (err) {
+    } 
+    catch (err) {
         return res.status(500).send({ status: false, message: err.message })
     }
 }
@@ -84,7 +85,9 @@ const updateOrder = async function (req, res) {
         orderData = await orderModel.findOneAndUpdate({ _id: data.orderId, userId, isDeleted: false }, { status: data.status }, { new: true })
 
         return res.status(200).send({ status: true, message: "Success", data: orderData })
-    } catch (err) {
+
+    } 
+    catch (err) {
         return res.status(500).send({ status: false, message: err.message })
     }
 }
