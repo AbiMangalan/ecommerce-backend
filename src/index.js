@@ -1,13 +1,22 @@
-const express = require('express');
-const router = require('./routes/route');
+const express = require('express')
+const route = require('./routes/routes.js')
+const { default: mongoose } = require('mongoose')
+const app = express()
+const multer = require("multer")
 
-const app = express();
+app.use(express.json())
+app.use(express.urlencoded({ extended: true }))
+app.use(multer().any())
 
-app.use(express.json());
-app.use(express.urlencoded({extended: true}));
 
-mongoose.connect("",{newurlparser : true}).then().catch();
+mongoose.connect("mongodb+srv://FunctionUp:heeheehee123@cluster0.ambyf.mongodb.net/group38Database", {
+    useNewUrlParser: true
+})
+    .then(() => console.log("MongoDb is connected"))
+    .catch(err => console.log(err))
 
-app.use('/',router);
+app.use('/', route)
 
-app.listen(3000);
+app.listen(process.env.PORT || 3000, function () {
+    console.log('Express app running on port: ' + (process.env.PORT || 3000))
+}) 
